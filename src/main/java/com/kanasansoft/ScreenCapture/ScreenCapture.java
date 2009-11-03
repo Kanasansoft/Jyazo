@@ -83,7 +83,7 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		DisplayMode mode = gd.getDisplayMode();
 		Robot robot = null;
 		try {
-			robot = new Robot();
+			robot = new Robot(gd);
 		} catch (AWTException e) {
 			e.printStackTrace();
 			return null;
