@@ -3,7 +3,7 @@
   <groupId>com.kanasansoft.Jyazo</groupId>
   <artifactId>Jyazo</artifactId>
   <name>Jyazo</name>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <properties>
     <launch4j.launchJarName>${name}-${version}.jar</launch4j.launchJarName>
   </properties>
