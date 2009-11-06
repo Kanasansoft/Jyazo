@@ -15,7 +15,9 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ant-plugin</artifactId>
+        <version>2.2</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -29,9 +31,11 @@
           <source>1.6</source>
           <target>1.6</target>
           <encoding>UTF-8</encoding>
+<!--
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
           <compilerArgument></compilerArgument>
+-->
         </configuration>
       </plugin>
       <plugin>
@@ -47,6 +51,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>osxappbundle-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
         <configuration>
           <mainClass>${package.main-class}</mainClass>
           <jvmVersion>1.6+</jvmVersion>
@@ -77,21 +82,22 @@
           </execution>
         </executions>
       </plugin>
-<!--      <plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.1</version>
         <executions>
           <execution>
-            <id>assembly</id>
             <phase>package</phase>
             <goals><goal>attached</goal></goals>
             <configuration>
               <descriptors>
-                <descriptor>src/main/assembly/src.xml</descriptor>
+                <descriptor>src/main/assembly/bin.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
         </executions>
-      </plugin>-->
+      </plugin>
     </plugins>
   </build>
 </project>
