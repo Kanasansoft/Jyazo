@@ -1,9 +1,14 @@
 package com.kanasansoft.Jyazo;
 
+import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -31,7 +36,9 @@ public class Jyazo {
 	Jyazo() {
 		String id = getId();
 		if(id == null){return;}
-		BufferedImage image = new ScreenCapture().captureSelective();
+		JyazoScreenCapture jsc = new JyazoScreenCapture();
+		jsc.displayText("Capture!");
+		BufferedImage image = jsc.captureSelective();
 		if(image == null){return;}
 		String url = postGyazo(id, image);
 		if(url == null){return;}
@@ -119,6 +126,42 @@ public class Jyazo {
 			return false;
 		}
 		return true;
+	}
+
+	class JyazoScreenCapture extends ScreenCapture{
+
+		String message = "";
+
+		JyazoScreenCapture(){
+		}
+
+		public void displayText(String text){
+			if(text == null){
+				text = "";
+			}
+			message = text;
+		}
+
+		@Override
+		public BufferedImage makeSecectingImage(){
+			BufferedImage image = super.makeSecectingImage();
+			int width = image.getWidth();
+			int height = image.getHeight();
+			Graphics g = image.getGraphics();
+			g.setFont(new Font("Dialog", Font.BOLD, 144));
+			g.setColor(new Color(0,0,0,31));
+			FontMetrics fontMetrics = g.getFontMetrics();
+			int stringWidth = fontMetrics.stringWidth(message);
+			int stringHeight = fontMetrics.getHeight();
+			g.drawString(message, (width-stringWidth)/2, (height+stringHeight)/2);
+			return image;
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			super.frameRedraw();
+		}
+
 	}
 
 }

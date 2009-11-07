@@ -73,8 +73,8 @@
             <goals><goal>launch4j</goal></goals>
             <configuration>
               <headerType>GUI</headerType>
-              <jar>target/${package.jar-name}</jar>
-              <outfile>target/${package.exe-name}</outfile>
+              <jar>target${file.separator}${package.jar-name}</jar>
+              <outfile>target${file.separator}${package.exe-name}</outfile>
               <jre>
                 <minVersion>1.6.0</minVersion>
               </jre>
@@ -92,7 +92,7 @@
             <goals><goal>attached</goal></goals>
             <configuration>
               <descriptors>
-                <descriptor>src/main/assembly/bin.xml</descriptor>
+                <descriptor>src${file.separator}main${file.separator}assembly${file.separator}bin.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>

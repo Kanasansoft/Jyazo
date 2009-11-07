@@ -11,7 +11,7 @@
   <fileSets>
     <fileSet>
       <directory></directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>${file.separator}</outputDirectory>
       <includes>
         <include>README*</include>
         <include>LICENSE*</include>
@@ -20,7 +20,7 @@
     </fileSet>
     <fileSet>
       <directory>target</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>${file.separator}</outputDirectory>
       <includes>
         <include>*.jar</include>
         <include>*.exe</include>

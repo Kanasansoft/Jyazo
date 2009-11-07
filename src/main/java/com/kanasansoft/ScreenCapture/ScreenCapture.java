@@ -33,7 +33,8 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 //		new ScreenCapture().capture();
 	}
 
-	private BufferedImage makeAccentImage(BufferedImage originalImage){
+	public BufferedImage makeAccentImage(BufferedImage originalImage){
+		if(originalImage == null){return null;}
 		int height = originalImage.getHeight();
 		int width = originalImage.getWidth();
 		int depth = originalImage.getColorModel().getPixelSize();
@@ -56,7 +57,8 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		return image;
 	}
 
-	private BufferedImage makeSecectingImage(){
+	public BufferedImage makeSecectingImage(){
+		if(capturedImage_ == null){return null;}
 		int w = capturedImage_.getWidth();
 		int h = capturedImage_.getHeight();
 		BufferedImage image = new BufferedImage(w, h, capturedImage_.getType());
@@ -111,7 +113,7 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		affectedImage_ = makeAccentImage(capturedImage_);
 
 		frame_ = new AutoRedrawFrame();
-		frame_.setImage(makeSecectingImage());
+		frameRedraw();
 		frame_.setUndecorated(true);
 
 		if(gd.isFullScreenSupported()){
@@ -160,8 +162,14 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 
 	}
 
+	public void frameRedraw(){
+		frame_.setImage(makeSecectingImage());
+		frame_.repaint();
+	}
+
 	@Override
 	public void keyPressed(KeyEvent e) {
+		frame_.repaint();
 	}
 
 	@Override
@@ -169,11 +177,14 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
 			running = false;
 			frame_.dispose();
+		}else{
+			frameRedraw();
 		}
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
+		frame_.repaint();
 	}
 
 	@Override
@@ -195,13 +206,11 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 			captured_ = false;
 			startPoint_ = new Point(e.getX(),e.getY());
 			endPoint_ = new Point(e.getX(),e.getY());
-			frame_.setImage(makeSecectingImage());
-			frame_.repaint();
+			frameRedraw();
 		}else if(selecting_ == true){
 			selecting_ = false;
 			captured_ = false;
-			frame_.setImage(makeSecectingImage());
-			frame_.repaint();
+			frameRedraw();
 		}else{
 			running = false;
 			frame_.dispose();
@@ -222,8 +231,7 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		endPoint_ = new Point(e.getX(),e.getY());
-		frame_.setImage(makeSecectingImage());
-		frame_.repaint();
+		frameRedraw();
 	}
 
 	@Override
