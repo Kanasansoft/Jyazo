@@ -27,6 +27,7 @@ import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
@@ -40,7 +41,8 @@ import com.kanasansoft.ScreenCapture.ScreenCapture;
 public class Jyazo {
 
 	final String APP_HOME_NAME = ".jyazo";
-	final String POST_SETS_PROP_FILE_NAME = "postsets.properties";
+	final String SETTING_PROP_FILE_NAME = "setting.properties";
+	final String SETTING_SAMPLE_PROP_FILE_NAME = "setting-sample.properties";
 
 	File appHome_ = null;
 	Properties postSetsData_ = null;
@@ -55,14 +57,14 @@ public class Jyazo {
 		if(id == null){return;}
 
 		appHome_ = getApplicationHome();
-
+		if(appHome_ == null){return;}
 		postSetsData_ = getPostSetsData();
 		if(postSetsData_ == null){return;}
-		String[] postSetIds = postSetsData_.getProperty("post_set_ids", "").split(" ");
+		String[] postSetIds = postSetsData_.getProperty("post_sets.post_set_ids", "").split(" ");
 		if(postSetIds.length == 0){return;}
 		ArrayList<String> postSetNames = new ArrayList<String>();
 		for(int i=0;i<postSetIds.length;i++){
-			String postSetName = postSetsData_.getProperty("post_set."+postSetIds[i]+".name", "");
+			String postSetName = postSetsData_.getProperty("post_sets.post_set."+postSetIds[i]+".name", "");
 			if(postSetName.length() == 0){return;}
 			postSetNames.add(postSetName);
 		}
@@ -74,20 +76,20 @@ public class Jyazo {
 		if(image == null){return;}
 		String postSetId = postSetIds[jsc.getSelectMessageIndex()];
 
-		String[] serverIds = postSetsData_.getProperty("post_set."+postSetId+".serverids", "").split(" ");
+		String[] serverIds = postSetsData_.getProperty("post_sets.post_set."+postSetId+".serverids", "").split(" ");
 		if(serverIds.length == 0){return;}
 
 		for(int i=0;i<serverIds.length;i++){
 
-			String sendUrl = postSetsData_.getProperty("server."+serverIds[i]+".url", "");
+			String sendUrl = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".url", "");
 			if(sendUrl.length() == 0){return;}
 
 			Proxy proxy = null;
-			String useProxy = postSetsData_.getProperty("server."+serverIds[i]+".use_proxy", "no");
+			String useProxy = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".use_proxy", "no");
 			if(useProxy.equalsIgnoreCase("yes")){
-				String proxyHost = postSetsData_.getProperty("server."+serverIds[i]+".proxy_host", "");
+				String proxyHost = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".proxy_host", "");
 				if(proxyHost.length() == 0){return;}
-				String proxyPort = postSetsData_.getProperty("server."+serverIds[i]+".proxy_port", "");
+				String proxyPort = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".proxy_port", "");
 				if(proxyPort.length() == 0){return;}
 				InetSocketAddress addr = new InetSocketAddress(proxyHost,Integer.parseInt(proxyPort, 10));
 				proxy = new Proxy(Proxy.Type.HTTP, addr);
@@ -105,6 +107,69 @@ public class Jyazo {
 
 		}
 
+	}
+
+	public static void copyFile(String from, String to) throws IOException {
+		FileChannel fromChannel = null;
+		FileChannel toChannel = null;
+		try {
+			fromChannel = new FileInputStream(from).getChannel();
+			toChannel = new FileOutputStream(to).getChannel();
+			fromChannel.transferTo(0, fromChannel.size(), toChannel);
+		} finally {
+			if(fromChannel!=null){
+				fromChannel.close();
+			}
+			if(toChannel!=null){
+				toChannel.close();
+			}
+		}
+	}
+
+	public void copyFileFromResource(String from, String to) throws IOException {
+		InputStream is = null;
+		FileOutputStream fos = null;
+		BufferedInputStream bis = null;
+		BufferedOutputStream bos = null;
+		try {
+			is = this.getClass().getResourceAsStream(from);
+			fos =new FileOutputStream(to);
+			bis = new BufferedInputStream(is);
+			bos = new BufferedOutputStream(fos);
+			int data = 0;			
+			while((data=bis.read())!=-1){
+				bos.write(data);
+			}
+		} finally {
+			if(bos!=null){
+				try {
+					bos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if(bis!=null){
+				try {
+					bis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if(fos!=null){
+				try {
+					fos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if(is!=null){
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	private String getId(){
@@ -126,76 +191,30 @@ public class Jyazo {
 		File appHome = new File(homePath,APP_HOME_NAME);
 		if(!appHome.exists()){
 			appHome.mkdir();
+			try {
+				copyFileFromResource(
+						"/"+SETTING_PROP_FILE_NAME,
+						new File(appHome,SETTING_PROP_FILE_NAME).getPath());
+			} catch (IOException e) {
+				e.printStackTrace();
+				appHome.delete();
+				return null;
+			}
+			try {
+				copyFileFromResource(
+						"/"+SETTING_SAMPLE_PROP_FILE_NAME,
+						new File(appHome,SETTING_SAMPLE_PROP_FILE_NAME).getPath());
+			} catch (IOException e) {
+				e.printStackTrace();
+				appHome.delete();
+				return null;
+			}
 		}
 		return appHome;
 	}
 
-	boolean initialPostSetsData(File propFile){
-
-		Properties prop = new Properties();
-
-		//post set ids
-		prop.setProperty("post_set_ids", "public_only localhost_only public_and_localhost");
-
-		//post set
-		prop.setProperty("post_set.public_only.name", "Public Only");
-		prop.setProperty("post_set.public_only.serverids", "public");
-
-		prop.setProperty("post_set.localhost_only.name", "Localhost Only");
-		prop.setProperty("post_set.localhost_only.serverids", "localhost");
-
-		prop.setProperty("post_set.public_and_localhost.name", "Public and Localhost");
-		prop.setProperty("post_set.public_and_localhost.serverids", "public localhost");
-		
-		//post
-		prop.setProperty("server.public.url", "http://gyazo.com/upload.cgi");
-		prop.setProperty("server.public.use_proxy", "no");
-		prop.setProperty("server.public.proxy_host", "192.168.0.100");
-		prop.setProperty("server.public.proxy_port", "8080");
-
-		prop.setProperty("server.localhost.url", "http://localhost/cgi-bin/gyazo/upload.cgi");
-		prop.setProperty("server.localhost.use_proxy", "no");
-		prop.setProperty("server.localhost.proxy_host", "192.168.0.100");
-		prop.setProperty("server.localhost.proxy_port", "8080");
-
-		//write
-		boolean isSuccess = true;
-		BufferedOutputStream bos = null;
-		try {
-			bos = new BufferedOutputStream(new FileOutputStream(propFile));
-			prop.store(bos, "Jyazo");
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-			isSuccess = false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			isSuccess = false;
-		} finally {
-			try {
-				if(bos != null){
-					bos.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				isSuccess = false;
-			}
-		}
-		return isSuccess;
-	}
-
 	Properties getPostSetsData(){
-		File propFile = new File(appHome_,POST_SETS_PROP_FILE_NAME); 
-		if(!propFile.exists()){
-			try {
-				propFile.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-			if(!initialPostSetsData(propFile)){
-				return null;
-			}
-		}
+		File propFile = new File(appHome_,SETTING_PROP_FILE_NAME); 
 		Properties prop = new Properties();
 		BufferedInputStream bis = null;
 		try {

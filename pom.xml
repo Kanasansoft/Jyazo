@@ -45,6 +45,9 @@
             <manifest>
               <mainClass>${package.main-class}</mainClass>
             </manifest>
+            <manifestEntries>
+              <Built-By>Kanasansoft</Built-By>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
