@@ -29,8 +29,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
@@ -45,7 +47,8 @@ public class Jyazo {
 	final String SETTING_SAMPLE_PROP_FILE_NAME = "setting-sample.properties";
 
 	File appHome_ = null;
-	Properties postSetsData_ = null;
+//	Properties postSetsData_ = null;
+	SettingData settingData_ = null;
 
 	public static void main(String[] args) {
 		new Jyazo();
@@ -58,15 +61,14 @@ public class Jyazo {
 
 		appHome_ = getApplicationHome();
 		if(appHome_ == null){return;}
-		postSetsData_ = getPostSetsData();
-		if(postSetsData_ == null){return;}
-		String[] postSetIds = postSetsData_.getProperty("post_sets.post_set_ids", "").split(" ");
-		if(postSetIds.length == 0){return;}
+		settingData_ = getSettingData(new File(appHome_,SETTING_PROP_FILE_NAME));
+		if(settingData_ == null){return;}
+		if(settingData_.postSetIds.size()==0){return;}
+		if(settingData_.serverIds.size()==0){return;}
 		ArrayList<String> postSetNames = new ArrayList<String>();
-		for(int i=0;i<postSetIds.length;i++){
-			String postSetName = postSetsData_.getProperty("post_sets.post_set."+postSetIds[i]+".name", "");
-			if(postSetName.length() == 0){return;}
-			postSetNames.add(postSetName);
+		for(String postSetId : settingData_.postSetIds){
+			PostSet postSet = settingData_.postSets.get(postSetId);
+			postSetNames.add(postSet.name);
 		}
 
 		JyazoScreenCapture jsc = new JyazoScreenCapture();
@@ -74,22 +76,22 @@ public class Jyazo {
 		jsc.setSelectMessageIndex(0);
 		BufferedImage image = jsc.captureSelective();
 		if(image == null){return;}
-		String postSetId = postSetIds[jsc.getSelectMessageIndex()];
+		String postSetId = settingData_.postSetIds.get(jsc.getSelectMessageIndex());
+		PostSet postSet = settingData_.postSets.get(postSetId);
 
-		String[] serverIds = postSetsData_.getProperty("post_sets.post_set."+postSetId+".serverids", "").split(" ");
-		if(serverIds.length == 0){return;}
+		for(String serverId : postSet.serverIds){
 
-		for(int i=0;i<serverIds.length;i++){
+			Server server = settingData_.servers.get(serverId);
 
-			String sendUrl = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".url", "");
+			String sendUrl = server.url;
 			if(sendUrl.length() == 0){return;}
 
 			Proxy proxy = null;
-			String useProxy = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".use_proxy", "no");
+			String useProxy = server.useProxy;
 			if(useProxy.equalsIgnoreCase("yes")){
-				String proxyHost = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".proxy_host", "");
+				String proxyHost = server.proxyHost;
 				if(proxyHost.length() == 0){return;}
-				String proxyPort = postSetsData_.getProperty("post_sets.server."+serverIds[i]+".proxy_port", "");
+				String proxyPort = server.proxyPort;
 				if(proxyPort.length() == 0){return;}
 				InetSocketAddress addr = new InetSocketAddress(proxyHost,Integer.parseInt(proxyPort, 10));
 				proxy = new Proxy(Proxy.Type.HTTP, addr);
@@ -100,7 +102,7 @@ public class Jyazo {
 			String url = postData(id, image, sendUrl, proxy);
 			if(url != null){
 				openURIByBrawser(url);
-				if(i == 0){
+				if(postSet.serverIds.get(0).equalsIgnoreCase(serverId)){
 					setStringToClipboard(url);
 				}
 			}
@@ -213,8 +215,8 @@ public class Jyazo {
 		return appHome;
 	}
 
-	Properties getPostSetsData(){
-		File propFile = new File(appHome_,SETTING_PROP_FILE_NAME); 
+	SettingData getSettingData(File propFile){
+
 		Properties prop = new Properties();
 		BufferedInputStream bis = null;
 		try {
@@ -236,7 +238,66 @@ public class Jyazo {
 		if(prop.isEmpty()){
 			return null;
 		}
-		return prop;
+
+		SettingData settingData = new SettingData();
+
+		settingData.textSize = prop.getProperty("post_sets.text_size", "");
+		settingData.textColor = prop.getProperty("post_sets.text_color", "");
+		settingData.selectAreaColor = prop.getProperty("post_sets.select_area_color", "");
+		settingData.unselectAreaColor = prop.getProperty("post_sets.unselect_area_color", "");
+		settingData.postSetIds = new ArrayList<String>();
+		settingData.serverIds = new ArrayList<String>();
+		settingData.postSets = new HashMap<String,PostSet>();
+		settingData.servers = new HashMap<String,Server>();
+
+		String psids = prop.getProperty("post_sets.post_set_ids", "").trim();
+		if(!psids.equalsIgnoreCase("")){
+			settingData.postSetIds.addAll(new ArrayList<String>(Arrays.asList(psids.split(" "))));
+		}
+
+		String svids = prop.getProperty("post_sets.server_ids", "").trim();
+		if(!svids.equalsIgnoreCase("")){
+			settingData.serverIds.addAll(new ArrayList<String>(Arrays.asList(svids.split(" "))));
+		}
+
+		for(String postSetId : settingData.postSetIds){
+
+			String pre = "post_sets.post_set."+postSetId+".";
+			PostSet postSet = new PostSet();
+
+			postSet.name = prop.getProperty(pre+"name", "");
+			postSet.textSize = prop.getProperty(pre+"text_size", "");
+			postSet.textColor = prop.getProperty(pre+"text_color", "");
+			postSet.selectAreaColor = prop.getProperty(pre+"select_area_color", "");
+			postSet.unselectAreaColor = prop.getProperty(pre+"unselect_area_color", "");
+
+			postSet.serverIds = new ArrayList<String>();
+
+			String pssvids = prop.getProperty(pre+"server_ids", "").trim();
+			if(!pssvids.equalsIgnoreCase("")){
+				postSet.serverIds = new ArrayList<String>(Arrays.asList(pssvids.split(" ")));
+			}
+
+			settingData.postSets.put(postSetId, postSet);
+
+		}
+
+		for(String serverId : settingData.serverIds){
+
+			String pre = "post_sets.server."+serverId+".";
+			Server server = new Server();
+
+			server.url = prop.getProperty(pre+"url", "");
+			server.useProxy = prop.getProperty(pre+"use_proxy", "");
+			server.proxyHost = prop.getProperty(pre+"proxy_host", "");
+			server.proxyPort = prop.getProperty(pre+"proxy_port", "");
+
+			settingData.servers.put(serverId, server);
+
+		}
+
+		return settingData;
+
 	}
 
 	private String postData(String id, BufferedImage image, String sendUrl, Proxy proxy){
@@ -385,4 +446,28 @@ public class Jyazo {
 
 	}
 
+	class SettingData{
+		public ArrayList<String> postSetIds;
+		public ArrayList<String> serverIds;
+		public HashMap<String,PostSet> postSets;
+		public HashMap<String,Server> servers;
+		public String textSize;
+		public String textColor;
+		public String selectAreaColor;
+		public String unselectAreaColor;
+	}
+	class PostSet{
+		public String name;
+		public ArrayList<String> serverIds;
+		public String textSize;
+		public String textColor;
+		public String selectAreaColor;
+		public String unselectAreaColor;
+	}
+	class Server{
+		public String url;
+		public String useProxy;
+		public String proxyHost;
+		public String proxyPort;
+	}
 }
