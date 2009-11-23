@@ -47,7 +47,6 @@ public class Jyazo {
 	final String SETTING_SAMPLE_PROP_FILE_NAME = "setting-sample.properties";
 
 	File appHome_ = null;
-//	Properties postSetsData_ = null;
 	SettingData settingData_ = null;
 
 	public static void main(String[] args) {
