@@ -71,7 +71,7 @@ public class Jyazo {
 		}
 
 		JyazoScreenCapture jsc = new JyazoScreenCapture();
-		jsc.setSelectMessages(postSetNames.toArray(new String[]{}));
+		jsc.setSelectMessages(postSetNames);
 		jsc.setSelectMessageIndex(0);
 		BufferedImage image = jsc.captureSelective();
 		if(image == null){return;}
@@ -369,7 +369,7 @@ public class Jyazo {
 	class JyazoScreenCapture extends ScreenCapture{
 
 		private String message_ = "";
-		private String[] messages_ = {};
+		private ArrayList<String> messages_ = new ArrayList<String>();
 		private int selectMessageIndex_ = 0;
 
 		ArrayList<Integer> changeMessageKeys_ = new ArrayList<Integer>(){{
@@ -389,9 +389,9 @@ public class Jyazo {
 		}
 
 		public void setSelectMessageIndex(int selectMessageIndex) {
-			if(0 <= selectMessageIndex && selectMessageIndex < messages_.length){
+			if(0 <= selectMessageIndex && selectMessageIndex < messages_.size()){
 				selectMessageIndex_ = selectMessageIndex;
-				message_ = messages_[selectMessageIndex_];
+				message_ = messages_.get(selectMessageIndex_);
 			} else {
 				selectMessageIndex_ = -1;
 				message_ = "";
@@ -402,11 +402,15 @@ public class Jyazo {
 			return selectMessageIndex_;
 		}
 
-		void setSelectMessages(String[] texts){
+		void setSelectMessages(ArrayList<String> texts){
 			if(texts == null){
-				messages_ = new String[0];
+				messages_ = new ArrayList<String>();
+				selectMessageIndex_ = -1;
+				message_ = "";
 			}else{
 				messages_ = texts;
+				selectMessageIndex_ = -1;
+				message_ = "";
 			}
 		}
 /*
@@ -436,7 +440,7 @@ public class Jyazo {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			Integer num = changeMessageKeys_.indexOf(keyCode);
-			if(num != null && 0 <= num && num < messages_.length){
+			if(num != null && 0 <= num && num < messages_.size()){
 				setSelectMessageIndex(num);
 			}
 			super.keyPressed(e);
