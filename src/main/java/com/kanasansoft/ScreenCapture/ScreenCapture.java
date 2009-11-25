@@ -22,7 +22,11 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 
 	private AutoRedrawFrame frame_ = null;
 	private BufferedImage capturedImage_ = null;
-	private BufferedImage affectedImage_ = null;
+//	private BufferedImage affectedImage_ = null;
+	private BufferedImage selectionImage_ = null;
+	private BufferedImage unselectionImage_ = null;
+//	private Color selectionColor_ = null;
+//	private Color unselectionColor_ = null;
 	private boolean running = true;
 	private boolean selecting_ = false;
 	private boolean captured_ = false;
@@ -33,23 +37,35 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 //		new ScreenCapture().capture();
 	}
 
-	public BufferedImage makeAccentImage(BufferedImage originalImage){
+	public void setSelectionColor(Color color){
+		if(color == null){return;}
+		selectionImage_ = getColorFilteredImage(capturedImage_, color);
+	}
+
+	public void setUnselectionColor(Color color){
+		if(color == null){return;}
+		unselectionImage_ = getColorFilteredImage(capturedImage_, color);
+	}
+
+	public BufferedImage getColorFilteredImage(BufferedImage originalImage, Color colorFilter){
 		if(originalImage == null){return null;}
+		if(colorFilter == null){return null;}
+		double alpha       = (double)colorFilter.getAlpha();
+		double filterRed   = ((double)colorFilter.getRed()  ) * alpha;
+		double filterGreen = ((double)colorFilter.getGreen()) * alpha;
+		double filterBlue  = ((double)colorFilter.getBlue() ) * alpha;
 		int height = originalImage.getHeight();
-		int width = originalImage.getWidth();
-		int depth = originalImage.getColorModel().getPixelSize();
-		int colorcount = originalImage.getColorModel().getNumColorComponents();
-		double colormax = Math.pow(2,depth/colorcount);
+		int width  = originalImage.getWidth();
 		BufferedImage image = new BufferedImage(width, height, originalImage.getType());
 		for(int y = 0;y<height;y++){
 			for(int x =0;x<width;x++){
-				Color originalColor = new Color(originalImage.getRGB(x,y));
-				double originalRed = (double)originalColor.getRed();
+				Color originalColor  = new Color(originalImage.getRGB(x,y));
+				double originalRed   = (double)originalColor.getRed();
 				double originalGreen = (double)originalColor.getGreen();
-				double originalBlue = (double)originalColor.getBlue();
-				double newRed = (originalRed * 4 + colormax / 2) / 5;
-				double newGreen = (originalGreen * 4 + colormax / 2) / 5;
-				double newBlue = (originalBlue * 4 + colormax / 2) / 5;
+				double originalBlue  = (double)originalColor.getBlue();
+				double newRed   = (originalRed   * (255 - alpha) + filterRed  ) / 255;
+				double newGreen = (originalGreen * (255 - alpha) + filterGreen) / 255;
+				double newBlue  = (originalBlue  * (255 - alpha) + filterBlue ) / 255;
 				Color newColor = new Color((int)newRed,(int)newGreen,(int)newBlue);
 				image.setRGB(x, y, newColor.getRGB());
 			}
@@ -59,18 +75,20 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 
 	public BufferedImage makeSecectingImage(){
 		if(capturedImage_ == null){return null;}
+		if(selectionImage_ == null){return null;}
+		if(unselectionImage_ == null){return null;}
 		int w = capturedImage_.getWidth();
 		int h = capturedImage_.getHeight();
 		BufferedImage image = new BufferedImage(w, h, capturedImage_.getType());
 		Graphics g = image.getGraphics();
 		if (selecting_) {
-			g.drawImage(affectedImage_, 0, 0, null);
-			g.drawImage(capturedImage_,
+			g.drawImage(unselectionImage_, 0, 0, null);
+			g.drawImage(selectionImage_,
 					startPoint_.x, startPoint_.y, endPoint_.x, endPoint_.y,
 					startPoint_.x, startPoint_.y, endPoint_.x, endPoint_.y,
 					null);
 		}else{
-			g.drawImage(affectedImage_, 0, 0, null);
+			g.drawImage(unselectionImage_, 0, 0, null);
 		}
 		return image;
 	}
@@ -99,18 +117,21 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		GraphicsDevice gd = ge.getDefaultScreenDevice();
 		return captureSelective(gd);
 	}
+
 	public BufferedImage captureSelective(GraphicsDevice gd) {
 
 		frame_ = null;
 		capturedImage_ = null;
-		affectedImage_ = null;
+		selectionImage_ = null;
+		unselectionImage_ = null;
 		running = true;
 		selecting_ = false;
 		captured_ = false;
 		startPoint_ = null;
 		endPoint_ = null;
 		capturedImage_ = capture(gd);
-		affectedImage_ = makeAccentImage(capturedImage_);
+		setSelectionColor(new Color(255,255,255,0));
+		setUnselectionColor(new Color(0,0,0,32));
 
 		frame_ = new AutoRedrawFrame();
 		frameRedraw();
