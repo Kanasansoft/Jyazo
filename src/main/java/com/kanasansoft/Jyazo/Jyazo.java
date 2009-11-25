@@ -64,14 +64,48 @@ public class Jyazo {
 		if(settingData_ == null){return;}
 		if(settingData_.postSetIds.size()==0){return;}
 		if(settingData_.serverIds.size()==0){return;}
-		ArrayList<String> postSetNames = new ArrayList<String>();
+
+		ArrayList<CaptureDecoration> CaptureDecorations = new ArrayList<CaptureDecoration>();
 		for(String postSetId : settingData_.postSetIds){
+
 			PostSet postSet = settingData_.postSets.get(postSetId);
-			postSetNames.add(postSet.name);
+
+			String message              = postSet.name;
+
+			String textSizeBuf          = postSet.textSize;
+			String textColorBuf         = postSet.textColor;
+			String selectAreaColorBuf   = postSet.selectAreaColor;
+			String unselectAreaColorBuf = postSet.unselectAreaColor;
+
+			if(textSizeBuf.equalsIgnoreCase("")){
+				textSizeBuf=settingData_.textSize;}
+			if(textColorBuf.equalsIgnoreCase("")){
+				textColorBuf=settingData_.textColor;}
+			if(selectAreaColorBuf.equalsIgnoreCase("")){
+				selectAreaColorBuf=settingData_.selectAreaColor;}
+			if(unselectAreaColorBuf.equalsIgnoreCase("")){
+				unselectAreaColorBuf=settingData_.unselectAreaColor;}
+
+			int textSize;
+			Color textColor;
+			Color selectAreaColor;
+			Color unselectAreaColor;
+
+			textSize = textSizeBuf.equalsIgnoreCase("")
+			? 96 : Integer.parseInt(textSizeBuf);
+			textColor = textColorBuf.equalsIgnoreCase("")
+			? new Color(0,0,0,32) : getColorFromString(textColorBuf);
+			selectAreaColor = selectAreaColorBuf.equalsIgnoreCase("")
+			? new Color(255,255,255,0) : getColorFromString(selectAreaColorBuf);
+			unselectAreaColor = unselectAreaColorBuf.equalsIgnoreCase("")
+			? new Color(0,0,0,32) : getColorFromString(unselectAreaColorBuf);
+
+			CaptureDecorations.add(new CaptureDecoration(message,textSize,textColor,selectAreaColor,unselectAreaColor));
+
 		}
 
 		JyazoScreenCapture jsc = new JyazoScreenCapture();
-		jsc.setSelectMessages(postSetNames);
+		jsc.setCaptureDecorations(CaptureDecorations);
 		jsc.setSelectMessageIndex(0);
 		BufferedImage image = jsc.captureSelective();
 		if(image == null){return;}
@@ -108,6 +142,15 @@ public class Jyazo {
 
 		}
 
+	}
+
+	public Color getColorFromString(String colorString){
+		int colorNum = Integer.parseInt(colorString,16);
+		int alpha = (colorNum & 0xff000000) >> 030;
+		int red   = (colorNum & 0x00ff0000) >> 020;
+		int green = (colorNum & 0x0000ff00) >> 010;
+		int blue  = (colorNum & 0x000000ff) >> 000;
+		return new Color(red,green,blue,alpha);
 	}
 
 	public static void copyFile(String from, String to) throws IOException {
@@ -368,8 +411,11 @@ public class Jyazo {
 
 	class JyazoScreenCapture extends ScreenCapture{
 
-		private ArrayList<String> messages_ = new ArrayList<String>();
-		private int selectMessageIndex_ = 0;
+		private ArrayList<CaptureDecoration> captureDecorations_ = new ArrayList<CaptureDecoration>();
+		private Integer selectMessageIndex_ = 0;
+		private final CaptureDecoration DEFAULT_CAPTURE_DECORATION =
+			new CaptureDecoration("",96,new Color(0,0,0,0),new Color(0,0,0,0),new Color(0,0,0,0));
+		private CaptureDecoration currentCaptureDecoration = DEFAULT_CAPTURE_DECORATION;
 /*
 		ArrayList<Integer> changeMessageKeys_ = new ArrayList<Integer>(){{
 			add(KeyEvent.VK_1);
@@ -404,51 +450,51 @@ public class Jyazo {
 		JyazoScreenCapture(){
 		}
 
-		public void setSelectMessageIndex(int selectMessageIndex) {
-			if(0 <= selectMessageIndex && selectMessageIndex < messages_.size()){
+		public void setSelectMessageIndex(Integer selectMessageIndex) {
+			if(selectMessageIndex != null && 0 <= selectMessageIndex && selectMessageIndex < captureDecorations_.size()){
 				selectMessageIndex_ = selectMessageIndex;
+				currentCaptureDecoration = captureDecorations_.get(selectMessageIndex);
+				setSelectionColor(currentCaptureDecoration.selectionColor);
+				setUnselectionColor(currentCaptureDecoration.unselectionColor);
 			} else {
-				selectMessageIndex_ = -1;
+				selectMessageIndex_ = null;
+				currentCaptureDecoration = DEFAULT_CAPTURE_DECORATION;
 			}
 		}
 
-		public int getSelectMessageIndex() {
+		public Integer getSelectMessageIndex() {
 			return selectMessageIndex_;
 		}
 
-		void setSelectMessages(ArrayList<String> texts){
-			if(texts == null){
-				messages_ = new ArrayList<String>();
-				selectMessageIndex_ = -1;
+		public void setCaptureDecorations(
+				ArrayList<CaptureDecoration> captureDecorations) {
+			if(captureDecorations == null){
+				captureDecorations_ = new ArrayList<CaptureDecoration>();
+				setSelectMessageIndex(null);
 			}else{
-				messages_ = texts;
-				selectMessageIndex_ = -1;
+				captureDecorations_ = captureDecorations;
+				setSelectMessageIndex(null);
 			}
 		}
-/*
-		public void displayText(String text){
-			if(text == null){
-				text = "";
-			}
-			message_ = text;
-		}
-*/
+
 		@Override
 		public BufferedImage makeSecectingImage(){
 
 			BufferedImage image = super.makeSecectingImage();
 
+			Integer selectMessageIndex = getSelectMessageIndex();
+			if(selectMessageIndex == null){
+				return image;
+			}
+
 			int width = image.getWidth();
 			int height = image.getHeight();
 
 			Graphics g = image.getGraphics();
-			g.setFont(new Font("Dialog", Font.BOLD, 96));
-			g.setColor(new Color(0,0,0,31));
+			g.setFont(new Font("Dialog", Font.BOLD, currentCaptureDecoration.textSize));
+			g.setColor(currentCaptureDecoration.textColor);
 
-			String message = "";
-			if(0 <= selectMessageIndex_ && selectMessageIndex_ < messages_.size()){
-				message = messages_.get(selectMessageIndex_);
-			}
+			String message = currentCaptureDecoration.message;
 
 			FontMetrics fontMetrics = g.getFontMetrics();
 			int stringWidth = fontMetrics.stringWidth(message);
@@ -463,11 +509,11 @@ public class Jyazo {
 		public void keyPressed(KeyEvent e) {
 			int keyCode = e.getKeyCode();
 			Integer num = changeMessageKeys_.indexOf(keyCode);
-			if(num != null && 0 <= num && num < messages_.size()){
+			if(num != null && 0 <= num && num < captureDecorations_.size()){
 				setSelectMessageIndex(num);
 			}
 			super.keyPressed(e);
-			super.frameRedraw();
+			frameRedraw();
 		}
 
 	}
@@ -495,5 +541,26 @@ public class Jyazo {
 		public String useProxy;
 		public String proxyHost;
 		public String proxyPort;
+	}
+	class CaptureDecoration{
+		public String message;
+		public int textSize;
+		public Color textColor;
+		public Color selectionColor;
+		public Color unselectionColor;
+		CaptureDecoration(){
+		}
+		CaptureDecoration(String message, int textSize, Color textColor){
+			this.message = message;
+			this.textSize = textSize;
+			this.textColor = textColor;
+		}
+		CaptureDecoration(String message, int textSize, Color textColor, Color selectionColor, Color unselectionColor){
+			this.message = message;
+			this.textSize = textSize;
+			this.textColor = textColor;
+			this.selectionColor = selectionColor;
+			this.unselectionColor = unselectionColor;
+		}
 	}
 }
