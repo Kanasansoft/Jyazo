@@ -368,10 +368,9 @@ public class Jyazo {
 
 	class JyazoScreenCapture extends ScreenCapture{
 
-		private String message_ = "";
 		private ArrayList<String> messages_ = new ArrayList<String>();
 		private int selectMessageIndex_ = 0;
-
+/*
 		ArrayList<Integer> changeMessageKeys_ = new ArrayList<Integer>(){{
 			add(KeyEvent.VK_1);
 			add(KeyEvent.VK_2);
@@ -384,6 +383,23 @@ public class Jyazo {
 			add(KeyEvent.VK_9);
 			add(KeyEvent.VK_0);
 		}};
+*/
+		ArrayList<Integer> changeMessageKeys_ = new ArrayList<Integer>(
+				Arrays.asList(
+						new Integer[]{
+								KeyEvent.VK_1,
+								KeyEvent.VK_2,
+								KeyEvent.VK_3,
+								KeyEvent.VK_4,
+								KeyEvent.VK_5,
+								KeyEvent.VK_6,
+								KeyEvent.VK_7,
+								KeyEvent.VK_8,
+								KeyEvent.VK_9,
+								KeyEvent.VK_0
+						}
+				)
+		);
 
 		JyazoScreenCapture(){
 		}
@@ -391,10 +407,8 @@ public class Jyazo {
 		public void setSelectMessageIndex(int selectMessageIndex) {
 			if(0 <= selectMessageIndex && selectMessageIndex < messages_.size()){
 				selectMessageIndex_ = selectMessageIndex;
-				message_ = messages_.get(selectMessageIndex_);
 			} else {
 				selectMessageIndex_ = -1;
-				message_ = "";
 			}
 		}
 
@@ -406,11 +420,9 @@ public class Jyazo {
 			if(texts == null){
 				messages_ = new ArrayList<String>();
 				selectMessageIndex_ = -1;
-				message_ = "";
 			}else{
 				messages_ = texts;
 				selectMessageIndex_ = -1;
-				message_ = "";
 			}
 		}
 /*
@@ -423,17 +435,28 @@ public class Jyazo {
 */
 		@Override
 		public BufferedImage makeSecectingImage(){
+
 			BufferedImage image = super.makeSecectingImage();
+
 			int width = image.getWidth();
 			int height = image.getHeight();
+
 			Graphics g = image.getGraphics();
 			g.setFont(new Font("Dialog", Font.BOLD, 96));
 			g.setColor(new Color(0,0,0,31));
+
+			String message = "";
+			if(0 <= selectMessageIndex_ && selectMessageIndex_ < messages_.size()){
+				message = messages_.get(selectMessageIndex_);
+			}
+
 			FontMetrics fontMetrics = g.getFontMetrics();
-			int stringWidth = fontMetrics.stringWidth(message_);
+			int stringWidth = fontMetrics.stringWidth(message);
 			int stringHeight = fontMetrics.getHeight();
-			g.drawString(message_, (width-stringWidth)/2, (height+stringHeight)/2);
+			g.drawString(message, (width-stringWidth)/2, (height+stringHeight)/2);
+
 			return image;
+
 		}
 
 		@Override
