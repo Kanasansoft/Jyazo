@@ -22,11 +22,10 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 
 	private AutoRedrawFrame frame_ = null;
 	private BufferedImage capturedImage_ = null;
-//	private BufferedImage affectedImage_ = null;
 	private BufferedImage selectionImage_ = null;
 	private BufferedImage unselectionImage_ = null;
-//	private Color selectionColor_ = null;
-//	private Color unselectionColor_ = null;
+	private Color selectionColor_ = null;
+	private Color unselectionColor_ = null;
 	private boolean running = true;
 	private boolean selecting_ = false;
 	private boolean captured_ = false;
@@ -37,14 +36,24 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 //		new ScreenCapture().capture();
 	}
 
-	public void setSelectionColor(Color color){
-		if(color == null){return;}
+	public void refreshSelectionImage(){
+		Color color = selectionColor_ == null ? new Color(255,255,255,0) : selectionColor_;
 		selectionImage_ = getColorFilteredImage(capturedImage_, color);
 	}
 
-	public void setUnselectionColor(Color color){
-		if(color == null){return;}
+	public void refreshUnselectionImage(){
+		Color color = unselectionColor_ == null ? new Color(0,0,0,32) : unselectionColor_;
 		unselectionImage_ = getColorFilteredImage(capturedImage_, color);
+	}
+
+	public void setSelectionColor(Color color){
+		selectionColor_ = color;
+		refreshSelectionImage();
+	}
+
+	public void setUnselectionColor(Color color){
+		unselectionColor_ = color;
+		refreshUnselectionImage();
 	}
 
 	public BufferedImage getColorFilteredImage(BufferedImage originalImage, Color colorFilter){
@@ -130,8 +139,8 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 		startPoint_ = null;
 		endPoint_ = null;
 		capturedImage_ = capture(gd);
-		setSelectionColor(new Color(255,255,255,0));
-		setUnselectionColor(new Color(0,0,0,32));
+		refreshSelectionImage();
+		refreshUnselectionImage();
 
 		frame_ = new AutoRedrawFrame();
 		frameRedraw();
