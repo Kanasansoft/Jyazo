@@ -59,26 +59,24 @@ public class ScreenCapture implements KeyListener, MouseListener, MouseMotionLis
 	public BufferedImage getColorFilteredImage(BufferedImage originalImage, Color colorFilter){
 		if(originalImage == null){return null;}
 		if(colorFilter == null){return null;}
-		double alpha       = (double)colorFilter.getAlpha();
-		double filterRed   = ((double)colorFilter.getRed()  ) * alpha;
-		double filterGreen = ((double)colorFilter.getGreen()) * alpha;
-		double filterBlue  = ((double)colorFilter.getBlue() ) * alpha;
+		int alpha       = colorFilter.getAlpha();
+		int filterRed   = colorFilter.getRed()   * alpha;
+		int filterGreen = colorFilter.getGreen() * alpha;
+		int filterBlue  = colorFilter.getBlue()  * alpha;
 		int height = originalImage.getHeight();
 		int width  = originalImage.getWidth();
 		BufferedImage image = new BufferedImage(width, height, originalImage.getType());
-		for(int y = 0;y<height;y++){
-			for(int x =0;x<width;x++){
-				Color originalColor  = new Color(originalImage.getRGB(x,y));
-				double originalRed   = (double)originalColor.getRed();
-				double originalGreen = (double)originalColor.getGreen();
-				double originalBlue  = (double)originalColor.getBlue();
-				double newRed   = (originalRed   * (255 - alpha) + filterRed  ) / 255;
-				double newGreen = (originalGreen * (255 - alpha) + filterGreen) / 255;
-				double newBlue  = (originalBlue  * (255 - alpha) + filterBlue ) / 255;
-				Color newColor = new Color((int)newRed,(int)newGreen,(int)newBlue);
-				image.setRGB(x, y, newColor.getRGB());
-			}
+		int[] rgbs = originalImage.getRGB(0, 0, width, height, null, 0, width);
+		for(int i=0;i<rgbs.length;i++){
+			int originalRed   = (rgbs[i] & 0xff0000) >> 020;
+			int originalGreen = (rgbs[i] & 0x00ff00) >> 010;
+			int originalBlue  = (rgbs[i] & 0x0000ff) >> 000;
+			int newRed   = (originalRed   * (255 - alpha) + filterRed  ) / 255;
+			int newGreen = (originalGreen * (255 - alpha) + filterGreen) / 255;
+			int newBlue  = (originalBlue  * (255 - alpha) + filterBlue ) / 255;
+			rgbs[i]=(newRed<<020)+(newGreen<<010)+(newBlue<<000);
 		}
+		image.setRGB(0, 0, width, height, rgbs, 0, width);
 		return image;
 	}
 
