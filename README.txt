@@ -63,12 +63,12 @@ Proxyサーバの設定方法は、「設定ファイルの記述方法」を参
 
 
 ========================================
-マルチポスト対応
+クロスポスト対応
 ----------------------------------------
 
 キャプチャした画像を複数のGyazoサーバに同時に送信可能です。
-また、マルチポストの送信先を簡単に切り換える事が可能です。
-マルチポストの設定方法は、「設定ファイルの記述方法」を参照して下さい。
+また、クロスポストの送信先を簡単に切り換える事が可能です。
+クロスポストの設定方法は、「設定ファイルの記述方法」を参照して下さい。
 
 
 ========================================
@@ -79,7 +79,7 @@ Proxyサーバの設定方法は、「設定ファイルの記述方法」を参
 「.jyazo」 ディレクトリ(フォルダ)が作成されます。
 「.jyazo」ディレクトリ配下にある「setting.properties」が設定ファイルになります。
 同ディレクトリに設定ファイルのサンプル「setting-sample.properties」が
-ありますので、マルチポスト機能の設定がそちらを参考にして下さい。
+ありますので、クロスポスト機能の設定がそちらを参考にして下さい。
 「.jyazo」ディレクトリを削除し、再度Jyazoを実行すると、
 「.jyazo」ディレクトリが再生成されます。
 
@@ -147,12 +147,12 @@ Maven2を通してサードパーティ製のライブラリを
 初回実行直後の設定ファイルは、
 Gyazoと同じ動作になるように記述されています。
 設定ファイルを書き変える事により
-Proxyサーバ対応、マルチポストが可能となります。
+Proxyサーバ対応、クロスポストが可能となります。
 
 設定ファイルの記述方法は、
 JavaのPropertiesファイルと同様です。
 
-一度のJyazo実行で複数のGyazoサーバにマルチポストする設定のことを
+一度のJyazo実行で複数のGyazoサーバにクロスポストする設定のことを
 JyazoではPostSetと読んでいます。
 PostSetを複数準備すると、キーボードからPostSetを選択できるようになります。
 例えば、自端末にGyazoサーバをlocalhostとし、Gyazoの公式サーバをpublicとします。
@@ -162,7 +162,7 @@ PostSetを複数準備すると、キーボードからPostSetを選択できる
 	二番目のPostSet
 		localhostのみに画像をポスト
 	三番目のPostSet
-		publicとlocalhostに画像をマルチポスト
+		publicとlocalhostに画像をクロスポスト
 
 設定ファイルには、サーバの設定、PostSetの設定、
 更に使用するサーバをJyazoに通知するための設定と
@@ -230,7 +230,7 @@ IDはlocalhost_onlyとしました。
 	post_sets.post_set.localhost_only.name=Localhost Only
 	post_sets.post_set.localhost_only.server_ids=localhost
 
-次に、公式とローカルのGyazoサーバにマルチポストするPostSetの設定です。
+次に、公式とローカルのGyazoサーバにクロスポストするPostSetの設定です。
 PostSetのIDはpublic_and_localhostです。
 複数のサーバにポストするために、server_idsにサーバIDをスペース区切りで複数指定しています。
 
@@ -252,7 +252,7 @@ PostSetのIDはpublic_and_localhostです。
 	post_sets.post_set_ids=public_only localhost_only public_and_localhost
 	post_sets.server_ids=public localhost
 
-ここまででマルチポストの設定は完了です。
+ここまででクロスポストの設定は完了です。
 PostSetを切り換えるには、
 Jyazo起動後の範囲選択待ちの画面でキーボードの数字キーを使用します。
 Jyazoに通知した順に、「1」キーから割り当てられていきます。
