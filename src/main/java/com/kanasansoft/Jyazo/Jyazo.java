@@ -145,11 +145,11 @@ public class Jyazo {
 	}
 
 	public Color getColorFromString(String colorString){
-		int colorNum = Integer.parseInt(colorString,16);
-		int alpha = (colorNum & 0xff000000) >> 030;
-		int red   = (colorNum & 0x00ff0000) >> 020;
-		int green = (colorNum & 0x0000ff00) >> 010;
-		int blue  = (colorNum & 0x000000ff) >> 000;
+		long colorNum = Long.parseLong(colorString,16);
+		long alpha = (colorNum & 0xff000000) >> 030;
+		long red   = (colorNum & 0x00ff0000) >> 020;
+		long green = (colorNum & 0x0000ff00) >> 010;
+		long blue  = (colorNum & 0x000000ff) >> 000;
 		return new Color(red,green,blue,alpha);
 	}
 
