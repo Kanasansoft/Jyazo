@@ -150,7 +150,7 @@ public class Jyazo {
 		long red   = (colorNum & 0x00ff0000) >> 020;
 		long green = (colorNum & 0x0000ff00) >> 010;
 		long blue  = (colorNum & 0x000000ff) >> 000;
-		return new Color(red,green,blue,alpha);
+		return new Color((int)red,(int)green,(int)blue,(int)alpha);
 	}
 
 	public static void copyFile(String from, String to) throws IOException {
