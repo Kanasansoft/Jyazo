@@ -176,7 +176,7 @@ public class Jyazo {
 		BufferedInputStream bis = null;
 		BufferedOutputStream bos = null;
 		try {
-			is = this.getClass().getResourceAsStream(from);
+			is = this.getClass().getClassLoader().getResourceAsStream(from);
 			fos =new FileOutputStream(to);
 			bis = new BufferedInputStream(is);
 			bos = new BufferedOutputStream(fos);
@@ -237,7 +237,7 @@ public class Jyazo {
 			appHome.mkdir();
 			try {
 				copyFileFromResource(
-						"/"+SETTING_PROP_FILE_NAME,
+						SETTING_PROP_FILE_NAME,
 						new File(appHome,SETTING_PROP_FILE_NAME).getPath());
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -246,7 +246,7 @@ public class Jyazo {
 			}
 			try {
 				copyFileFromResource(
-						"/"+SETTING_SAMPLE_PROP_FILE_NAME,
+						SETTING_SAMPLE_PROP_FILE_NAME,
 						new File(appHome,SETTING_SAMPLE_PROP_FILE_NAME).getPath());
 			} catch (IOException e) {
 				e.printStackTrace();
