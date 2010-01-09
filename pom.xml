@@ -3,7 +3,7 @@
   <groupId>com.kanasansoft.Jyazo</groupId>
   <artifactId>Jyazo</artifactId>
   <name>Jyazo</name>
-  <version>0.1.0</version>
+  <version>0.1.1-SNAPSHOT</version>
   <properties>
     <package.package-name>com.kanasansoft.Jyazo</package.package-name>
     <package.main-class>${package.package-name}.${name}</package.main-class>
